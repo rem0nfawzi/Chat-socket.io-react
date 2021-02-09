@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import { v4 as uuidv4 } from "uuid";
 
 let socket;
 function App() {
+  // Messages
+  const [messages, setMessages] = useState([]);
+
   // Start socket connection
   useEffect(() => {
     socket = io("http://localhost:3000/");
 
+    // Listen to event "send-message"
+    socket.on("send-message", d => {
+      setMessages(prev => [...prev, d]);
+    });
     // Cleanup function
     return () => socket.disconnect();
   }, []);
-
-  // Messages
-  const [messages, setMessages] = useState([]);
 
   // Send message
   const [message, setMessage] = useState("");
@@ -20,14 +25,19 @@ function App() {
 
   const handleSubmit = e => {
     e.preventDefault();
-    socket.emit("message", {
+    socket.emit("send-message", {
       message,
       name,
     });
   };
   return (
     <div id="chat-app">
-      <div className="messages"></div>
+      <div className="messages">
+        {messages.map(msg => (
+          <p key={uuidv4()}>{msg.message}</p>
+        ))}
+        <span></span>
+      </div>
       <form onSubmit={handleSubmit}>
         <input
           type="text"

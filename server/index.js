@@ -13,10 +13,10 @@ const io = socket(server, {
 });
 
 // On connection
-io.on("connection", socket => {
-  console.log("Socket connection made", socket.id);
+io.on("connection", socketInstance => {
+  console.log("Socket connection made", socketInstance.id);
 
-  io.on("message", () => {
-    console.log("Hey");
+  socketInstance.on("send-message", data => {
+    io.sockets.emit("send-message", data);
   });
 });
