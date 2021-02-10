@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
+import "./App.css";
 
 let socket;
 function App() {
@@ -22,34 +23,68 @@ function App() {
   // Send message
   const [message, setMessage] = useState("");
   const [name, setName] = useState("");
+  const [nameSaved, setNameSaved] = useState(false);
 
   const handleSubmit = e => {
     e.preventDefault();
-    socket.emit("send-message", {
-      message,
-      name,
-    });
+    if (!nameSaved) setNameSaved(true);
+    else
+      socket.emit("send-message", {
+        message,
+        name,
+      });
+    // Empty input
+    setMessage("");
   };
+
+  // Scroll to bottom whenever messages are updated
+  const lastMsgRef = useRef();
+  useEffect(() => {
+    if (lastMsgRef) lastMsgRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
   return (
     <div id="chat-app">
       <div className="messages">
         {messages.map(msg => (
-          <p key={uuidv4()}>{msg.message}</p>
+          <div
+            className={`msg-row ${msg.name === name ? "mine" : ""}`}
+            key={uuidv4()}
+          >
+            <span className="avatar">
+              {msg.name.split(" ").map(name => name[0])}
+            </span>
+            <p>{msg.message}</p>
+          </div>
         ))}
-        <span></span>
+        <span ref={lastMsgRef}></span>
       </div>
+
       <form onSubmit={handleSubmit}>
+        {!nameSaved && (
+          <input
+            type="text"
+            value={name}
+            placeholder="Name ..."
+            onChange={e => setName(e.target.value)}
+            className="name"
+          />
+        )}
+
+        {nameSaved && (
+          <input
+            type="text"
+            value={message}
+            placeholder="message ..."
+            onChange={e => setMessage(e.target.value)}
+          />
+        )}
+
         <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
+          type="submit"
+          value={nameSaved ? "send" : "enter"}
+          disabled={!message && nameSaved}
+          className={!message ? "disabled" : ""}
         />
-        <input
-          type="text"
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-        />
-        <input type="submit" value="send" />
       </form>
     </div>
   );
