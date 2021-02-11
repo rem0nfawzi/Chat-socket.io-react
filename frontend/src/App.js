@@ -13,9 +13,10 @@ function App() {
     socket = io("http://localhost:3000/");
 
     // Listen to event "send-message"
-    socket.on("send-message", d => {
-      setMessages(prev => [...prev, d]);
+    socket.on("send-message", newData => {
+      setMessages(prev => [...prev, newData]);
     });
+
     // Cleanup function
     return () => socket.disconnect();
   }, []);
@@ -27,8 +28,9 @@ function App() {
 
   const handleSubmit = e => {
     e.preventDefault();
-    if (!nameSaved) setNameSaved(true);
-    else
+    if (!nameSaved) {
+      setNameSaved(true);
+    } else
       socket.emit("send-message", {
         message,
         name,

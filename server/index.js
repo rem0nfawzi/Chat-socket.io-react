@@ -8,14 +8,16 @@ const server = app.listen(4000, () => {
 
 // Socket setup
 const io = socket(server, {
-  origin: "http://localhost/3000",
-  methods: ["GET", "POST"],
+  cors: {
+    origin: "*",
+  },
 });
 
 // On connection
 io.on("connection", socketInstance => {
   console.log("Socket connection made", socketInstance.id);
 
+  // Listen to new msgs
   socketInstance.on("send-message", data => {
     io.sockets.emit("send-message", data);
   });
